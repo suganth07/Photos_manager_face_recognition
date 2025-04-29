@@ -33,10 +33,21 @@ app.add_middleware(
 )
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
-SERVICE_ACCOUNT_FILE = 'credentials.json'
+import base64
+
+encoded_credentials = os.getenv("GDRIVE_CREDENTIALS_B64")
+if not encoded_credentials:
+    raise ValueError("Missing GDRIVE_CREDENTIALS_B64 environment variable")
+
+# Decode and write to a temp file
+decoded_credentials = base64.b64decode(encoded_credentials).decode()
+with open("credentials.json", "w") as f:
+    f.write(decoded_credentials)
+
 credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    "credentials.json", scopes=SCOPES
 )
+
 drive_service = build('drive', 'v3', credentials=credentials)
 
 PHOTOS_FOLDER_ID = "1yM3_aKiaizjqutcIHtBVzIfdEsy-fouh"
@@ -108,7 +119,9 @@ def list_drive_files(folder_id: str, mime_type: str = 'image/') -> list:
     results = drive_service.files().list(
         q=query, fields="files(id, name, webContentLink)").execute()
     return results.get('files', [])
-
+@app.post("hello")
+async def hello():
+    return "hello"
 @app.get("/api/folders")
 async def list_folders():
     try:
