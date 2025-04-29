@@ -10,3 +10,4 @@ google-auth-oauthlib
 google-auth-httplib2
 requests
 supabase
+dlib==19.24.0
