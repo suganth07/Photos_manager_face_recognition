@@ -1,5 +1,8 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+import os
+from dotenv import load_dotenv
+import base64
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from googleapiclient.discovery import build
@@ -41,10 +44,20 @@ app.add_middleware(
 )
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
-SERVICE_ACCOUNT_FILE = 'leo-0000.json'
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+
+load_dotenv()  # Load from .env if running locally
+
+encoded_credentials = os.getenv("GOOGLE_SERVICE_ACCOUNT_BASE64")
+print("Encoded credentials:", encoded_credentials)
+
+if not encoded_credentials:
+    raise ValueError("Service account Base64 is missing!")
+
+decoded_json = base64.b64decode(encoded_credentials)
+credentials = service_account.Credentials.from_service_account_info(
+    json.loads(decoded_json), scopes=SCOPES
 )
+
 drive_service = build('drive', 'v3', credentials=credentials)
 
 PHOTOS_FOLDER_ID = "1yM3_aKiaizjqutcIHtBVzIfdEsy-fouh"
@@ -120,6 +133,7 @@ def list_drive_files(folder_id: str, mime_type: str = 'image/') -> list:
 async def list_folders():
     try:
         folders = list_drive_files(PHOTOS_FOLDER_ID, mime_type='application/vnd.google-apps.folder')
+        print(folders)
         return {"folders": folders}
     except Exception as e:
         logger.exception("Error listing folders")
