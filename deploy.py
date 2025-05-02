@@ -41,7 +41,7 @@ app.add_middleware(
 )
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
-SERVICE_ACCOUNT_FILE = 'leo_0000.json'
+SERVICE_ACCOUNT_FILE = 'leo-0000.json'
 credentials = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES
 )
